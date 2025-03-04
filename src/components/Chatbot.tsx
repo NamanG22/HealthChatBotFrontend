@@ -32,6 +32,7 @@ export default function Chatbot() {
 
   return (
     <div className="h-screen w-screen flex flex-col">
+      
       {/* Chat messages container */}
       <div className="flex-grow overflow-auto p-4">
         {messages.map((msg, idx) => (

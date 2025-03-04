@@ -27,10 +27,15 @@
   --font-mono: var(--font-geist-mono);
 
   --color-coral-500: #FF6B6B;
+  --color-danger-500: #ef4444;
   --color-mushroom-100: #E8D8C4;
+  --color-mushroom-200: #e8dccc;
   --color-mushroom-700: #A18A75;
+  --color-mushroom-800: #5c5144;
   --color-marble-100: #F5F5F5;
+  --color-marble-300: #ced4da;
   --color-marble-400: #D4D4D4;
+  --color-marble-500: #868e96;
   --color-volcanic-700: #4A403A;
   --color-volcanic-800: #333333;
   --color-volcanic-900: #1a1a1a;
