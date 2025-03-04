@@ -1,8 +1,39 @@
 @import "tailwindcss";
 
+
+@layer utilities {
+  .min-w-left-panel-lg {
+    min-width: 250px; /* Adjust as needed */
+  }
+  .min-w-left-panel-2xl {
+    min-width: 300px;
+  }
+  .min-w-left-panel-3xl {
+    min-width: 350px;
+  }
+  .max-w-left-panel-lg {
+    max-width: 250px;
+  }
+  .max-w-left-panel-2xl {
+    max-width: 300px;
+  }
+  .max-w-left-panel-3xl {
+    max-width: 350px;
+  }
+}
+
 @theme {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  --color-coral-500: #FF6B6B;
+  --color-mushroom-100: #E8D8C4;
+  --color-mushroom-700: #A18A75;
+  --color-marble-100: #F5F5F5;
+  --color-marble-400: #D4D4D4;
+  --color-volcanic-700: #4A403A;
+  --color-volcanic-800: #333333;
+  --color-volcanic-900: #1a1a1a;
 }
 
 :root {
@@ -16,9 +47,39 @@
     --foreground: #ededed;
   }
 }
+.text-p-lg {
+  font-size: 1rem;
+  line-height: 150%;
+  letter-spacing: 0;
+}
+.font-body {
+  font-family: var(--font-sans, sans-serif);
+}
+/* @media (min-width: 1024px) {
+  .lg\:max-w-left-panel-lg {
+      max-width: 242px;
+  }
+} */
+
+.max-w-left-panel-lg {
+  max-width: 242px;
+}
+.min-w-left-panel-lg {
+  min-width: 242px;
+}
 
 body {
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.text-overline {
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* div{
+  border:black 1px solid;
+} */
