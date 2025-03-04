@@ -3,13 +3,13 @@ export default function Header(){
     return(
         <div className="w-full">
             <nav className="z-navigation flex w-full items-center justify-between rounded-lg border px-4 py-3 border-marble-400 bg-marble-100">
-                <Link href="/">
+                <Link href="#">
                     <div className="flex items-baseline mr-3">
                     </div>
                 </Link>
                 {/* <button className="flex items-center md:hidden"><i className="icon-default icon-menu text-icon-lg"></i></button> */}
                 <div className="hidden md:flex flex-row items-center gap-x-4 gap-y-0 lg:gap-x-6 justify-between md:w-fit md:max-w-[680px] lg:max-w-[820px]">
-                    <Link href="/">
+                    <Link href="#">
                         <p className="text-overline uppercase font-code font-medium text-volcanic-900">Chat</p>
                     </Link>
                     <Link href="https://dashboard.cohere.com">
