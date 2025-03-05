@@ -110,7 +110,7 @@ export default function Chat(){
                                                         id="composer" 
                                                         dir="auto" 
                                                         placeholder="Message..." 
-                                                        className="w-full flex-1 resize-none overflow-hidden self-center px-2 pb-3 pt-2 md:px-4 md:pb-6 md:pt-4 mb-3 md:mb-1 rounded bg-marble-100 transition ease-in-out focus:outline-none text-p font-body leading-[150%] text-volcanic-700" 
+                                                        className="w-full flex-1 resize-none overflow-hidden self-center px-2 pb-3 pt-2 md:px-4 md:pb-6 md:pt-4 mb-3 md:mb-1 rounded bg-marble-100 transition ease-in-out focus:outline-none text-p font-body leading-[150%] text-volcanic-700 custom-scroll" 
                                                         style={{maxHeight: "207.75px", height: "61px", overflowY: "auto"}} 
                                                         rows={1}
                                                         value={input}
