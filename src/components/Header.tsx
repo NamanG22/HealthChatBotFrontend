@@ -15,6 +15,9 @@ export default function Header(){
                     <Link href="/chat">
                         <p className="text-overline uppercase font-code text-volcanic-800 hover:text-volcanic-900">Chat</p>
                     </Link>
+                    <Link href="/hospital-locator">
+                        <p className="text-overline uppercase font-code text-volcanic-800 hover:text-volcanic-900">Hospital Locator</p>
+                    </Link>
                     <Link href="#">
                         <p className="text-overline uppercase font-code text-volcanic-800 hover:text-volcanic-900">Playground</p>
                     </Link>
