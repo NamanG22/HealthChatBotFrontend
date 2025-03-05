@@ -2,8 +2,9 @@
 // import Link from 'next/link'
 import { GitFork, UserRound } from 'lucide-react';
 import { Settings  } from 'lucide-react';
-import { BotMessageSquare } from 'lucide-react';
+import { BotMessageSquare, ArrowRightToLine  } from 'lucide-react';
 import { useState, useRef, useEffect } from "react";
+import { FaArrowRight } from "react-icons/fa6";
 
 
 export default function Chat(){
@@ -115,15 +116,15 @@ export default function Chat(){
                                                         rows={1}
                                                         value={input}
                                                         onChange={(e) => setInput(e.target.value)}
-                                                        onKeyDown={(e) => {
+                                                        onKeyDown={(e) => { 
                                                         if (e.key === "Enter" && !e.shiftKey) {
                                                             e.preventDefault(); // Prevent newline
                                                             sendMessage();
                                                         }
                                                         }}
                                                         ></textarea>
-                                                        <button className="h-8 w-8 my-2 ml-1 md:my-4 flex flex-shrink-0 items-center justify-center rounded transition ease-in-out text-mushroom-800 hover:bg-mushroom-100" type="button">
-                                                            <i className="icon-default icon-arrow-right"></i>
+                                                        <button className="h-8 w-8 my-2 ml-1 md:my-4 flex flex-shrink-0 items-center justify-center rounded transition ease-in-out text-mushroom-800 hover:bg-mushroom-100 hover:cursor-pointer" type="button" onClick={sendMessage}>
+                                                            <FaArrowRight  className=""/>
                                                         </button>
                                                     </div>
                                                     {/* <div className="flex items-center gap-x-2 border-t border-marble-400 mx-2 py-2" >
