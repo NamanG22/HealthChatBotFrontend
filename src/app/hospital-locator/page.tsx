@@ -4,14 +4,10 @@ import { useState, useEffect } from 'react';
 import Header from '../../components/Header';
 import SimpleMap from '../../components/SimpleMap';
 
-// API configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
-
 export default function HospitalLocator() {
-  const [location, setLocation] = useState({ lat: null, lng: null });
+  const [location, setLocation] = useState({ lat: 40.7128, lng: -74.0060 });
   const [hospitals, setHospitals] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     // Get user's current location if they allow permission
@@ -31,14 +27,9 @@ export default function HospitalLocator() {
       );
     }
 
-    // Attach the update function to window for map communication
+    // Attach the update function to window for map->list communication
     window.updateHospitalSelection = (updatedHospitals) => {
       setHospitals(updatedHospitals);
-    };
-
-    return () => {
-      // Clean up
-      delete window.updateHospitalSelection;
     };
   }, []);
 
@@ -46,45 +37,60 @@ export default function HospitalLocator() {
     if (!location.lat || !location.lng) return;
     
     setLoading(true);
-    setError(null);
     
     try {
-      // Call the backend API that interfaces with Google Maps
-      const response = await fetch(
-        `${API_BASE_URL}/hospitals/nearby?latitude=${location.lat}&longitude=${location.lng}`
-      );
-      
-      if (!response.ok) {
-        throw new Error(`API returned status: ${response.status}`);
-      }
-      
-      const result = await response.json();
-      
-      if (result.success && result.data) {
-        setHospitals(result.data);
-      } else {
-        throw new Error(result.message || 'Failed to find hospitals');
-      }
-    } catch (error) {
-      console.error("Error fetching hospitals:", error);
-      setError('Failed to fetch hospital data. Please try again later.');
-      
-      // Fallback to mock data for demonstration or development
-      if (process.env.NODE_ENV === 'development') {
+      // Simulating API response with more realistic data including coordinates
+      setTimeout(() => {
+        // Generate hospital coordinates around the user's location
         const mockHospitals = [
           { 
-            id: "mock1", 
+            id: '1', 
             name: 'General Hospital', 
             address: '123 Health St', 
             distance: '1.2 miles',
             lat: location.lat + 0.01, 
             lng: location.lng + 0.015 
           },
+          { 
+            id: '2', 
+            name: 'Community Medical Center', 
+            address: '456 Care Ave', 
+            distance: '2.4 miles',
+            lat: location.lat - 0.008, 
+            lng: location.lng + 0.02 
+          },
+          { 
+            id: '3', 
+            name: 'Emergency Care Facility', 
+            address: '789 Aid Blvd', 
+            distance: '3.5 miles',
+            lat: location.lat + 0.02, 
+            lng: location.lng - 0.01 
+          },
+          { 
+            id: '4', 
+            name: 'University Hospital', 
+            address: '101 Medical Campus', 
+            distance: '4.1 miles',
+            lat: location.lat - 0.015, 
+            lng: location.lng - 0.018 
+          },
+          { 
+            id: '5', 
+            name: 'Children\'s Healthcare Center', 
+            address: '234 Pediatric Way', 
+            distance: '2.8 miles',
+            lat: location.lat + 0.005, 
+            lng: location.lng - 0.025 
+          },
         ];
         
         setHospitals(mockHospitals);
-      }
-    } finally {
+        setLoading(false);
+      }, 1000);
+      
+    } catch (error) {
+      console.error("Error fetching hospitals:", error);
       setLoading(false);
     }
   };
@@ -125,12 +131,6 @@ export default function HospitalLocator() {
                   {loading ? 'Searching...' : 'Find Nearby Hospitals'}
                 </button>
                 
-                {error && (
-                  <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-md text-sm">
-                    {error}
-                  </div>
-                )}
-                
                 <div className="mt-6">
                   <h2 className="text-lg font-semibold mb-3">Nearby Hospitals</h2>
                   {hospitals.length > 0 ? (
@@ -148,9 +148,6 @@ export default function HospitalLocator() {
                           <h3 className="font-medium">{hospital.name}</h3>
                           <p className="text-sm text-gray-600">{hospital.address}</p>
                           <p className="text-sm text-gray-600">Distance: {hospital.distance}</p>
-                          {hospital.rating !== 'N/A' && (
-                            <p className="text-sm text-gray-600">Rating: {hospital.rating} ⭐</p>
-                          )}
                         </li>
                       ))}
                     </ul>
@@ -160,15 +157,17 @@ export default function HospitalLocator() {
                 </div>
               </div>
               
-              <div className="w-full md:w-2/3 bg-gray-200 rounded-lg flex items-center justify-center" style={{ minHeight: '400px' }}>
+              <div className="w-full md:w-2/3 bg-gray-200 rounded-lg overflow-hidden" style={{ minHeight: '400px' }}>
                 {hospitals.length > 0 ? (
                   <SimpleMap userLocation={location} hospitals={hospitals} loading={loading} />
                 ) : (
-                  <p className="text-gray-600">
-                    {loading ? 'Loading map...' : 'Map will be displayed here'}
-                    <br />
-                    <span className="text-sm">(Search for nearby hospitals to view on map)</span>
-                  </p>
+                  <div className="h-full w-full flex items-center justify-center">
+                    <p className="text-gray-600 text-center">
+                      {loading ? 'Loading map...' : 'Search for hospitals to see them on the map'}
+                      <br />
+                      <span className="text-sm">(Sample map visualization)</span>
+                    </p>
+                  </div>
                 )}
               </div>
             </div>
