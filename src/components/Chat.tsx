@@ -20,7 +20,7 @@ export default function Chat(){
 
     try {
       // Send request to backend
-      const res = await fetch("http://localhost:5000/chat", {
+      const res = await fetch("https://healthchatbotbackend.onrender.com/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: input }),
@@ -75,88 +75,25 @@ export default function Chat(){
                             <div className="md:!h-full !h-fit flex relative mt-auto overflow-x-hidden">
                                 <div className="flex h-max min-h-full w-full">
                                     <div id="message-list" className="flex h-auto min-w-0 flex-1 flex-col">
-                                        <div className="m-auto w-full p-4">
-                                        {/* 
-                                            <div className="flex flex-col items-center gap-y-6">
-                                                <p className="text-[1.25rem] lg:text-[1.5rem] font-variable font-medium text-center text-volcanic-900">Try a prompt in Chat mode</p>
-                                                <div className="w-full max-w-[820px] rounded-lg border border-marble-400">
-                                                    <div className="px-4">
-                                                        <div className="flex w-full items-end">
-                                                            <div className="flex w-full justify-between overflow-x-auto md:justify-start styles_noScrollbar__WImnw border-none" role="tablist" aria-orientation="horizontal">
-                                                                <button className="flex w-full flex-1 flex-col focus:outline-none md:flex-initial border-b border-marble-400" id="headlessui-tabs-tab-:R2j9anlcm:" role="tab" type="button" aria-selected="false" tabIndex="-1" aria-controls="headlessui-tabs-panel-:Rd9anlcm:">
-                                                                    <div className="group flex w-full items-center justify-center gap-x-3 px-10 pt-1">
-                                                                        <span className="text-label uppercase font-code whitespace-nowrap text-volcanic-700 group-hover:text-volcanic-900 my-3">Use Tools</span>
-                                                                    </div>
-                                                                </button>
-                                                                <button className="flex w-full flex-1 flex-col focus:outline-none md:flex-initial border-b-4 border-coral-500" id="headlessui-tabs-tab-:R4j9anlcm:" role="tab" type="button" aria-selected="true" tabindex="0"  aria-controls="headlessui-tabs-panel-:Rl9anlcm:">
-                                                                    <div className="group flex w-full items-center justify-center gap-x-3 px-10 pt-1">
-                                                                        <span className="text-label uppercase font-code whitespace-nowrap font-medium text-volcanic-900 group-hover:text-volcanic-900 my-3">Just Chat</span>
-                                                                    </div>
-                                                                </button>
-                                                            </div>
-                                                            <div className="hidden flex-1 border-b border-marble-400 md:block"></div>
-                                                        </div>
-                                                        <div className="w-full lg:pt-5 pt-5 pb-4">
-                                                            <span aria-hidden="true" id="headlessui-tabs-panel-:Rd9anlcm:" role="tabpanel" tabindex="-1" style={{position: "absolute",top: "0",left: "0",width: "1px",height: "1px",padding: "0",margin: "-1px",overflow: "hidden",clipPath: "inset(50%)",whiteSpace: "nowrap",border: "0"}} aria-labelledby="headlessui-tabs-tab-:R2j9anlcm:"></span>
-                                                            <div className="" id="headlessui-tabs-panel-:Rl9anlcm:" role="tabpanel" tabindex="0" aria-labelledby="headlessui-tabs-tab-:R4j9anlcm:">
-                                                                <div className="flex flex-col gap-y-5">
-                                                                    <p className="text-p font-body">Use Command R+ without any access to external sources.</p>
-                                                                    <div className="flex flex-col gap-2.5 md:flex-row">
-                                                                        <button className="flex w-full gap-2 rounded-md border border-marble-400 p-3 text-left md:flex-col md:p-4 bg-marble-200 transition-colors ease-in-out hover:bg-marble-300">
-                                                                            <div className="flex h-8 w-8 flex-none items-center justify-center rounded bg-mushroom-500/25 text-mushroom-600">
-                                                                                <i className="icon-outline icon-globe-stand" ></i>
-                                                                            </div>
-                                                                            <div className="flex flex-grow flex-col gap-y-2">
-                                                                                <span className="text-label uppercase font-code font-medium"  >English to French</span>
-                                                                                <p className="text-p font-body">Create a business plan for a marketing agency in 
-                                                                                    <span className="font-medium">French</span>
-                                                                                </p>
-                                                                            </div>
-                                                                        </button>
-                                                                        <button className="flex w-full gap-2 rounded-md border border-marble-400 p-3 text-left md:flex-col md:p-4 bg-marble-200 transition-colors ease-in-out hover:bg-marble-300">
-                                                                            <div className="flex h-8 w-8 flex-none items-center justify-center rounded bg-mushroom-500/25 text-mushroom-600">
-                                                                                <i className="icon-outline icon-globe-stand"   ></i>
-                                                                            </div>
-                                                                            <div className="flex flex-grow flex-col gap-y-2">
-                                                                                <span className="text-label uppercase font-code font-medium"  >Multilingual</span>
-                                                                                <p className="text-p font-body"  >Redacta una descripción de empleo Diseñador(a) Web</p>
-                                                                            </div>
-                                                                        </button>
-                                                                        <button className="flex w-full gap-2 rounded-md border border-marble-400 p-3 text-left md:flex-col md:p-4 bg-marble-200 transition-colors ease-in-out hover:bg-marble-300">
-                                                                            <div className="flex h-8 w-8 flex-none items-center justify-center rounded bg-mushroom-500/25 text-mushroom-600">
-                                                                                <i className="icon-outline icon-code"   ></i>
-                                                                            </div>
-                                                                            <div className="flex flex-grow flex-col gap-y-2">
-                                                                                <span className="text-label uppercase font-code font-medium"  >Code Generation</span>
-                                                                                <p className="text-p font-body"  >Help me clean up some data in Python</p>
-                                                                            </div>
-                                                                        </button>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            */}
-                                        </div> 
+                                        <div className="m-auto w-full p-4"></div> 
                                         <div className="flex flex-col space-y-2 overflow-auto">
                                             {messages.map((msg, idx) => (
                                             <div key={idx} className={`p-2 text-left flex`}>
-                                                <span
-                                                className={`flex items-center p-2 rounded-lg ${
-                                                    msg.sender === "user" ? "text-volcanic-800" : "text-volcanic-900"
+                                                <div
+                                                className="flex-shrink-0">
+                                                   {msg.sender === "user" ? (
+                                                        <UserRound className="bg-[#543A14] m-2 p-[4px] w-8 h-8 rounded-sm text-[#FFF0DC]" />
+                                                        ) : (
+                                                        <BotMessageSquare className="bg-[#543A14] m-2 p-[4px] w-8 h-8 rounded-sm text-[#FFF0DC]" />
+                                                    )}
+                                                </div>
+                                                <div
+                                                    className={`p-3 rounded-lg max-w-xs sm:max-w-md lg:max-w-4xl ${
+                                                    msg.sender === "user" ? "bg-blue-500 text-white" : "bg-gray-200 text-black"
                                                     }`}
-                                                    >
-                                                    {
-                                                        msg.sender ==="user"
-                                                        ?
-                                                        <UserRound className="bg-[#543A14] m-2 p-[4px] w-8 h-auto rounded-sm text-[#FFF0DC]"/>
-                                                        :
-                                                        <BotMessageSquare className="bg-[#543A14] m-2 p-[4px] w-8 h-auto rounded-sm text-[#FFF0DC]"/>
-                                                    }
+                                                >
                                                     {msg.text}
-                                                </span>
+                                                </div>
                                             </div>
                                             ))}
                                             <div ref={messagesEndRef} />
