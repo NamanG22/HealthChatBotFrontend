@@ -5,45 +5,83 @@ import { Settings  } from 'lucide-react';
 import { BotMessageSquare} from 'lucide-react';
 import { useState, useRef, useEffect } from "react";
 import { FaArrowRight } from "react-icons/fa6";
+import LeftPanel from './LeftPanel';
+
 
 
 export default function Chat(){
     const [messages, setMessages] = useState<{ text: string; sender: string }[]>([]);
-  const [input, setInput] = useState("");
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+    const [input, setInput] = useState("");
+    const [sessionId, setSessionId] = useState<string | null>(null);
+    const userId = localStorage.getItem("userId");
 
-  const sendMessage = async () => {
-    if (!input.trim()) return;
+    const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    // Append user message
-    setMessages((prevMessages) => [...prevMessages, { text: input, sender: "user" }]);
-    setInput("");
+    const API_URL = process.env.NEXT_PUBLIC_BACKEND_URI;
 
-    try {
-      // Send request to backend
-      const res = await fetch("https://healthchatbotbackend.onrender.com/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: input }),
-      });
+    const sendMessage = async () => {
+        if (!input.trim()) return;
+        // Append user message
+        setMessages((prevMessages) => [...prevMessages, { text: input, sender: "user" }]);
+        setInput("");
 
-      if (!res.ok) {
-        throw new Error("Failed to fetch response");
-      }
+        try {
+            // Send request to backend
+            const res = await fetch(`${API_URL}/chat`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ 
+                    message: input, 
+                    userId, 
+                    sessionId: sessionId || null // Ensure sessionId is handled properly
+                }),
+            });
+        
+            if (!res.ok) {
+                throw new Error(`Server responded with ${res.status}: ${res.statusText}`);
+            }
+        
+            const data = await res.json();
+        
+            if (!data.reply) {
+                throw new Error("No response received from the bot.");
+            }
+        
+            // Update sessionId if a new session is created
+            if (!sessionId && data.sessionId) {
+                setSessionId(data.sessionId);
+            }
+        
+            // Append user message and bot response
+            setMessages((prevMessages) => [
+                ...prevMessages, 
+                { text: input, sender: "user" },
+                { text: data.reply, sender: "bot" }
+            ]);
+        
+        } catch (error) {
+            console.error("❌ Error fetching bot response:", error);
+            setMessages((prevMessages) => [
+                ...prevMessages,
+                { text: "Sorry, there was an error processing your request.", sender: "bot" }
+            ]);
+        }
+    };
 
-      const data = await res.json();
+    // Auto-scroll to latest message
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages]);
 
-      // Append bot response
-      setMessages((prevMessages) => [...prevMessages, { text: data.reply, sender: "bot" }]);
-    } catch (error) {
-      console.error("Error fetching bot response:", error);
-    }
-  };
+    useEffect(() => {
+        if (sessionId) {
+          fetch(`${API_URL}/chat/${sessionId}`)
+            .then(res => res.json())
+            .then(data => setMessages(data));
+        }
+      }, [sessionId]);
 
-  // Auto-scroll to latest message
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+      
     return(
         <main className="z-main-section flex flex-grow lg:min-w-0 absolute h-full w-full lg:static lg:h-auto transition-transform duration-500 ease-in-out lg:transition-none">
             <section className="relative flex h-full min-w-0 flex-grow flex-col rounded-lg border border-marble-400 bg-marble-100 overflow-hidden">
@@ -111,7 +149,7 @@ export default function Chat(){
                                                         id="composer" 
                                                         dir="auto" 
                                                         placeholder="Message..." 
-                                                        className="w-full flex-1 resize-none overflow-hidden self-center px-2 pb-3 pt-2 md:px-4 md:pb-6 md:pt-4 mb-3 md:mb-1 rounded bg-marble-100 transition ease-in-out focus:outline-none text-p font-body leading-[150%] text-volcanic-700 custom-scroll" 
+                                                        className="w-full flex-1 resize-none overflow-hidden self-center px-2 pb-3 pt-2 md:px-4 md:pb-4 md:pt-4 mb-3 md:mb-1 rounded bg-marble-100 transition ease-in-out focus:outline-none text-p font-body leading-[150%] text-volcanic-700 custom-scroll" 
                                                         style={{maxHeight: "207.75px", height: "61px", overflowY: "auto"}} 
                                                         rows={1}
                                                         value={input}
