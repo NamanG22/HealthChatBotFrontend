@@ -1,5 +1,33 @@
-import Link from 'next/link'
+"use client";
+import { useState, useRef, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { FaUserCircle } from "react-icons/fa";
 export default function Header(){
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const router = useRouter();
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    const handleLogout = () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("userId");
+        localStorage.removeItem("name");
+        router.push("/"); // Redirect to login page
+        setTimeout(() => {
+            window.location.reload(); // Force reload to clear any cached state
+        }, 500);
+    };
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+        if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+            setIsDropdownOpen(false);
+        }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
     return(
         <div className="w-full">
             <nav className="z-navigation flex w-full items-center justify-between rounded-lg border px-4 py-3 border-marble-400 bg-marble-100">
@@ -9,7 +37,7 @@ export default function Header(){
                 </Link>
                 {/* <button className="flex items-center md:hidden"><i className="icon-default icon-menu text-icon-lg"></i></button> */}
                 <div className="hidden md:flex flex-row items-center gap-x-4 gap-y-0 lg:gap-x-6 justify-between md:w-fit md:max-w-[680px] lg:max-w-[820px]">
-                    <Link href="/">
+                    <Link href="/home">
                         <p className="text-overline uppercase font-code font-medium text-volcanic-900">Home</p>
                     </Link>
                     <Link href="/chat">
@@ -24,10 +52,30 @@ export default function Header(){
                     <Link target="_blank" href="#">
                         <p className="text-overline uppercase font-code text-volcanic-800 hover:text-volcanic-900">Community</p>
                     </Link>
-                    <div className="relative">
-                        <button className="flex items-center gap-x-2 px-1 focus:rounded focus:outline-1 focus:outline-offset-4 focus:outline-volcanic-700" type="button" aria-expanded="false">
-                            <i className="icon-default icon-profile text-icon-md"></i>
+                    <div className="relative" ref={dropdownRef}>
+                        <button
+                        className="flex items-center gap-x-2 px-1 focus:rounded focus:outline-1 focus:outline-offset-4 focus:outline-volcanic-700"
+                        type="button"
+                        aria-expanded={isDropdownOpen}
+                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                        >
+                            <FaUserCircle className="h-6 w-6 text-icon-md text-volcanic-700"/>
                         </button>
+
+                        {/* Dropdown Menu */}
+                        {isDropdownOpen && (
+                        <div className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-lg z-50">
+                            <Link href="/profile">
+                            <p className="block px-4 py-2 text-sm text-gray-800 hover:bg-gray-100 cursor-pointer">Profile</p>
+                            </Link>
+                            <button
+                            onClick={handleLogout}
+                            className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 cursor-pointer"
+                            >
+                            Logout
+                            </button>
+                        </div>
+                        )}
                     </div>
                 </div>
             </nav>

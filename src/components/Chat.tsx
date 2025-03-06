@@ -2,7 +2,7 @@
 // import Link from 'next/link'
 import { GitFork, UserRound } from 'lucide-react';
 import { Settings  } from 'lucide-react';
-import { BotMessageSquare, ArrowRightToLine  } from 'lucide-react';
+import { BotMessageSquare} from 'lucide-react';
 import { useState, useRef, useEffect } from "react";
 import { FaArrowRight } from "react-icons/fa6";
 
@@ -51,7 +51,7 @@ export default function Chat(){
                     <div className="flex h-header w-full min-w-0 items-center border-b border-marble-400">
                         <div className="flex w-full flex-1 items-center justify-between px-5">
                             <span className="relative flex min-w-0 flex-grow items-center gap-x-1 overflow-hidden py-4">
-                                <span className="text-p-lg font-body truncate text-volcanic-900">Chat with Cohere</span>
+                                <span className="text-p-lg font-body truncate text-volcanic-900">Chat with Assistant</span>
                             </span>
                             <span className="flex items-center gap-x-2 py-4">
                                 <div aria-expanded="false" aria-haspopup="dialog">
