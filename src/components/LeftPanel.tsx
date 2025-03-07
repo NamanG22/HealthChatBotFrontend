@@ -1,25 +1,8 @@
-"use client";
 import Link from 'next/link'
 import { TextSearch } from 'lucide-react';
 import { SquarePen } from 'lucide-react';
 import { PanelLeftClose  } from 'lucide-react';
-import { useEffect, useState } from "react";
-
-export default function LeftPanel({ onSelectChat }: { onSelectChat: (sessionId: string)=> void}){
-    const [chats, setChats] = useState([]);
-    const userId = localStorage.getItem("userId");
-
-    const API_URL = process.env.NEXT_PUBLIC_BACKEND_URI;
-
-    useEffect(() => {
-        const fetchChats = async () => {
-        const res = await fetch(`${API_URL}/chats/${userId}`);
-        const data = await res.json();
-        setChats(data);
-        };
-
-        fetchChats();
-    }, []);
+export default function LeftPanel(){
     return(
         <div className="lg:flex-grow-0 transition-transform duration-500 ease-in-out lg:transition-[min-width,max-width,margin,opacity,border-width] lg:duration-300 w-full flex flex-grow flex-col rounded-lg border border-marble-400 bg-marble-100 lg:mr-3 lg:min-w-[242px] 2xl:min-w-left-panel-2xl 3xl:min-w-left-panel-3xl lg:max-w-[242px] 2xl:max-w-left-panel-2xl 3xl:max-w-left-panel-3xl">
             <nav className="transition-opacity ease-in-out lg:duration-500 flex h-full w-full flex-grow flex-col">
@@ -108,17 +91,6 @@ export default function LeftPanel({ onSelectChat }: { onSelectChat: (sessionId: 
                         </div>
                     </div>
                 </section> */}
-                <ul>
-                    {chats.map(chat => (
-                    <li
-                        key={chat.sessionId}
-                        className="p-2 cursor-pointer hover:bg-gray-200"
-                        onClick={() => onSelectChat(chat.sessionId)}
-                    >
-                        {chat.title}
-                    </li>
-                    ))}
-                </ul>
             </nav>
         </div>
     )
