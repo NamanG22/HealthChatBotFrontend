@@ -3,11 +3,15 @@
 import { GitFork, UserRound } from 'lucide-react';
 import { Settings  } from 'lucide-react';
 import { BotMessageSquare} from 'lucide-react';
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { FaArrowRight } from "react-icons/fa6";
 import LeftPanel from './LeftPanel';
-
-
+import { debounce } from 'lodash';
+const { CohereClientV2 } = require('cohere-ai');
+const COHERE_API_KEY = process.env.NEXT_PUBLIC_COHERE_API_KEY;
+const cohere = new CohereClientV2({
+    token: COHERE_API_KEY,
+});
 
 export default function Chat(){
     const [messages, setMessages] = useState<{ text: string; sender: string }[]>([]);
@@ -20,45 +24,51 @@ export default function Chat(){
     const API_URL = process.env.NEXT_PUBLIC_BACKEND_URI;
 
     const sendMessage = async () => {
-        if (!input.trim()) return;
-        // Append user message
-        setMessages((prevMessages) => [...prevMessages, { text: input, sender: "user" }]);
-        setInput("");
+        const trimmedInput = input.trim();
+        if (!trimmedInput) return;
 
+        // Show loading state
+        setIsLoading(true);
+        setInput("");
+        // Append user message
+        
         try {
-            // Send request to backend
-            const res = await fetch(`${API_URL}/chat`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ 
-                    message: input, 
-                    userId, 
-                    sessionId: sessionId || null // Ensure sessionId is handled properly
-                }),
+            setMessages((prevMessages) => [...prevMessages, { text: trimmedInput, sender: "user" }]);
+            const response = await cohere.chat({
+                model: 'command-r',
+                messages: [
+                    ...messages.map(msg => ({
+                        role: msg.sender === "user" ? "user" : "assistant",
+                        content: msg.text
+                    })),
+                    {
+                        role: "user",
+                        content: trimmedInput,
+                    }
+                ],
             });
-        
-            if (!res.ok) {
-                throw new Error(`Server responded with ${res.status}: ${res.statusText}`);
+    
+            if (!response.message?.content?.[0]?.text) {
+                throw new Error("Invalid response format from Cohere");
             }
-        
-            const data = await res.json();
-        
-            if (!data.reply) {
-                throw new Error("No response received from the bot.");
-            }
-        
-            // Update sessionId if a new session is created
-            if (!sessionId && data.sessionId) {
-                setSessionId(data.sessionId);
-            }
-        
-            // Append user message and bot response
-            setMessages((prevMessages) => [
-                ...prevMessages, 
-                { text: input, sender: "user" },
-                { text: data.reply, sender: "bot" }
-            ]);
-        
+    
+            const botResponse = response.message.content[0].text;
+    
+            // Add bot response
+            setMessages(prev => [...prev, { text: botResponse, sender: "bot" }]);
+
+            setIsLoading(false);
+    
+            // Save conversation to backend if needed
+            // await saveConversation({
+            //     userId,
+            //     sessionId,
+            //     messages: [...messages, 
+            //         { text: trimmedInput, sender: "user" },
+            //         { text: botResponse, sender: "bot" }
+            //     ]
+            // });
+            
         } catch (error) {
             console.error("❌ Error fetching bot response:", error);
             setMessages((prevMessages) => [
@@ -69,9 +79,16 @@ export default function Chat(){
     };
 
     // Auto-scroll to latest message
+    const debouncedScroll = useCallback(
+        debounce(() => {
+            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        }, 100),
+        []
+    );
+    
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [messages]);
+        debouncedScroll();
+    }, [messages, debouncedScroll]);
 
     useEffect(() => {
         if (sessionId) {
@@ -80,7 +97,16 @@ export default function Chat(){
             .then(data => setMessages(data));
         }
       }, [sessionId]);
+    
+    const [isLoading, setIsLoading] = useState(false);
 
+    const TypingIndicator = () => (
+        <div className="flex space-x-2 p-3">
+            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100"></div>
+            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200"></div>
+        </div>
+    );
       
     return(
         <main className="z-main-section flex flex-grow lg:min-w-0 absolute h-full w-full lg:static lg:h-auto transition-transform duration-500 ease-in-out lg:transition-none">
@@ -135,6 +161,12 @@ export default function Chat(){
                                                 </div>
                                             </div>
                                             ))}
+                                            {isLoading && (
+                                                <div className="flex items-center">
+                                                    <BotMessageSquare className="bg-[#543A14] m-2 p-[4px] w-8 h-8 rounded-sm text-[#FFF0DC]" />
+                                                    <TypingIndicator />
+                                                </div>
+                                            )}
                                             <div ref={messagesEndRef} />
                                         </div>
                                         <div className="sticky bottom-0 px-4 pb-4 bg-marble-100">
