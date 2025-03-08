@@ -3,19 +3,39 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FaUserCircle } from "react-icons/fa";
+import { useAuth } from "../context/AuthContext";
+
 export default function Header(){
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const router = useRouter();
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    const handleLogout = () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("userId");
-        localStorage.removeItem("name");
-        router.push("/"); // Redirect to login page
-        setTimeout(() => {
-            window.location.reload(); // Force reload to clear any cached state
-        }, 500);
+    const API_URL = process.env.NEXT_PUBLIC_BACKEND_URI;
+    const { userEmail } = useAuth();
+
+    const handleLogout = async () => {
+        try {
+            // First end all active sessions
+            await fetch(`${API_URL}/api/chat/session/end-user-sessions`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ userEmail }),
+            });
+
+            console.log("ended all active sessions");
+
+            localStorage.removeItem("token");
+            localStorage.removeItem("userId");
+            localStorage.removeItem("name");
+            router.push("/"); // Redirect to login page
+            setTimeout(() => {
+                window.location.reload(); // Force reload to clear any cached state
+            }, 500);
+        } catch (error) {
+            console.error('Error ending user sessions:', error);
+        }
     };
 
     useEffect(() => {

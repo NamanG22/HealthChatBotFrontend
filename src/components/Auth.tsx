@@ -1,6 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from '../context/AuthContext';
 
 export default function Auth() {
   const [isRegister, setIsRegister] = useState(false);
@@ -9,11 +10,39 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const router = useRouter();
+  const { setUserEmail } = useAuth();
 
   const API_URL = process.env.NEXT_PUBLIC_BACKEND_URI; // Replace with your backend URL
 
+  useEffect(() => {
+    // Check if token exists and is valid
+    const checkAuth = async () => {
+      try {
+        const res = await fetch(`${API_URL}/verify-token`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          },
+          credentials: 'include'
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          setUserEmail(data.email); // Set email from token verification
+        }
+      } catch (error) {
+        console.error('Error verifying token:', error);
+      }
+    };
+
+    if (localStorage.getItem('token')) {
+      checkAuth();
+    }
+  }, [setUserEmail]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     console.log("clicked");
+    console.log("API_URL", API_URL);
     
     e.preventDefault();
     const endpoint = isRegister ? "/register" : "/login";
@@ -21,7 +50,10 @@ export default function Auth() {
 
     const res = await fetch(`${API_URL}${endpoint}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
       body: JSON.stringify(body),
     });
     console.log(res);
@@ -33,6 +65,7 @@ export default function Auth() {
         localStorage.setItem("token", data.token);
         localStorage.setItem("userId", data.userId);
         localStorage.setItem("name", data.name);
+        setUserEmail(data.email);
         setMessage("Login successful!");
         setTimeout(() => {
             router.push("/home");

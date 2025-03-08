@@ -5,27 +5,67 @@ import { Settings  } from 'lucide-react';
 import { BotMessageSquare} from 'lucide-react';
 import { useState, useRef, useEffect, useCallback } from "react";
 import { FaArrowRight } from "react-icons/fa6";
-import LeftPanel from './LeftPanel';
 import { debounce } from 'lodash';
 const { CohereClientV2 } = require('cohere-ai');
 const COHERE_API_KEY = process.env.NEXT_PUBLIC_COHERE_API_KEY;
 const cohere = new CohereClientV2({
     token: COHERE_API_KEY,
 });
+import { useAuth } from '../context/AuthContext';
 
 export default function Chat(){
+    const { userEmail } = useAuth();
     const [messages, setMessages] = useState<{ text: string; sender: string }[]>([]);
     const [input, setInput] = useState("");
-    const [sessionId, setSessionId] = useState<string | null>(null);
-    const userId = localStorage.getItem("userId");
-
+    const [sessionId, setSessionId] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+    const [isInitialized, setIsInitialized] = useState(false);
+    
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const API_URL = process.env.NEXT_PUBLIC_BACKEND_URI;
+    
+    useEffect(() => {
+        const initSession = async () => {
+            if (!userEmail || isInitialized) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/api/chat/session`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ userEmail }),
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to initialize session');
+                }
+
+                const data = await response.json();
+                setSessionId(data.sessionId);
+                setIsInitialized(true);
+                
+                if (data.messages && data.messages.length > 0) {
+                    const formattedMessages = data.messages.map((msg: any) => ({
+                        text: msg.content,
+                        sender: msg.role === 'user' ? 'user' : 'bot'
+                    }));
+                    setMessages(formattedMessages);
+                }
+            } catch (error) {
+                console.error("Failed to initialize session:", error);
+            }
+        };
+
+        initSession();
+    }, [userEmail, isInitialized]);
 
     const sendMessage = async () => {
         const trimmedInput = input.trim();
         if (!trimmedInput) return;
+        console.log("userEmail111", userEmail);
+
 
         // Show loading state
         setIsLoading(true);
@@ -33,7 +73,26 @@ export default function Chat(){
         // Append user message
         
         try {
-            setMessages((prevMessages) => [...prevMessages, { text: trimmedInput, sender: "user" }]);
+            const userMessage = { text: trimmedInput, sender: "user" };
+            setMessages((prevMessages) => [...prevMessages, userMessage]);
+
+            try {
+                await fetch(`${API_URL}/api/chat/message`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userEmail,
+                        sessionId,
+                        message: userMessage
+                    }),
+                });
+            } catch (error) {
+                console.log("❌ Error:", error);
+            }
+
             const response = await cohere.chat({
                 model: 'command-r',
                 messages: [
@@ -52,29 +111,36 @@ export default function Chat(){
                 throw new Error("Invalid response format from Cohere");
             }
     
-            const botResponse = response.message.content[0].text;
+            const botMessage = { 
+                text: response.message.content[0].text, 
+                sender: "bot" 
+            };
     
             // Add bot response
-            setMessages(prev => [...prev, { text: botResponse, sender: "bot" }]);
+            setMessages(prev => [...prev, botMessage]);
 
-            setIsLoading(false);
-    
-            // Save conversation to backend if needed
-            // await saveConversation({
-            //     userId,
-            //     sessionId,
-            //     messages: [...messages, 
-            //         { text: trimmedInput, sender: "user" },
-            //         { text: botResponse, sender: "bot" }
-            //     ]
-            // });
+            console.log("messages", messages);
+
+            await fetch(`${API_URL}/api/chat/message`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userEmail,
+                    sessionId,
+                    message: botMessage
+                }),
+            });
             
         } catch (error) {
-            console.error("❌ Error fetching bot response:", error);
+            console.error("❌ Error:", error);
             setMessages((prevMessages) => [
                 ...prevMessages,
                 { text: "Sorry, there was an error processing your request.", sender: "bot" }
             ]);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -89,16 +155,6 @@ export default function Chat(){
     useEffect(() => {
         debouncedScroll();
     }, [messages, debouncedScroll]);
-
-    useEffect(() => {
-        if (sessionId) {
-          fetch(`${API_URL}/chat/${sessionId}`)
-            .then(res => res.json())
-            .then(data => setMessages(data));
-        }
-      }, [sessionId]);
-    
-    const [isLoading, setIsLoading] = useState(false);
 
     const TypingIndicator = () => (
         <div className="flex space-x-2 p-3">
@@ -154,7 +210,7 @@ export default function Chat(){
                                                 </div>
                                                 <div
                                                     className={`p-3 rounded-lg max-w-xs sm:max-w-md lg:max-w-4xl ${
-                                                    msg.sender === "user" ? "bg-blue-500 text-white" : "bg-gray-200 text-black"
+                                                    msg.sender === "user" ? "bg-mushroom-100 text-volcanic-900" : "bg-gray-200 text-black"
                                                     }`}
                                                 >
                                                     {msg.text}
