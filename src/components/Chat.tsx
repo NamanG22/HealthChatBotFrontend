@@ -20,6 +20,7 @@ export default function Chat(){
     const [sessionId, setSessionId] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [isInitialized, setIsInitialized] = useState(false);
+    const initializationRef = useRef(false);
     
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -27,7 +28,8 @@ export default function Chat(){
     
     useEffect(() => {
         const initSession = async () => {
-            if (!userEmail || isInitialized) return;
+            if (!userEmail || initializationRef.current) return;
+            initializationRef.current = true;
             
             try {
                 const response = await fetch(`${API_URL}/api/chat/session`, {
@@ -59,7 +61,7 @@ export default function Chat(){
         };
 
         initSession();
-    }, [userEmail, isInitialized]);
+    }, [userEmail]);
 
     const sendMessage = async () => {
         const trimmedInput = input.trim();
