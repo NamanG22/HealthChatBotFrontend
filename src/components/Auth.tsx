@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from '../context/AuthContext';
 
+const API_URL = process.env.NEXT_PUBLIC_BACKEND_URI; // Replace with your backend URL
+
 export default function Auth() {
   const [isRegister, setIsRegister] = useState(false);
   const [name, setName] = useState("");
@@ -12,7 +14,6 @@ export default function Auth() {
   const router = useRouter();
   const { setUserEmail } = useAuth();
 
-  const API_URL = process.env.NEXT_PUBLIC_BACKEND_URI; // Replace with your backend URL
 
   useEffect(() => {
     // Check if token exists and is valid

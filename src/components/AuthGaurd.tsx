@@ -2,11 +2,12 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname  } from "next/navigation";
 
+
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
-
+  
   useEffect(() => {
     const token = localStorage.getItem("token"); // Check if user is logged in
 
