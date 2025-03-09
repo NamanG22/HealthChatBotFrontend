@@ -5,7 +5,6 @@ import { Settings  } from 'lucide-react';
 import { BotMessageSquare} from 'lucide-react';
 import { useState, useRef, useEffect, useCallback } from "react";
 import { FaArrowRight } from "react-icons/fa6";
-import { debounce } from 'lodash';
 const { CohereClientV2 } = require('cohere-ai');
 const COHERE_API_KEY = process.env.NEXT_PUBLIC_COHERE_API_KEY;
 const cohere = new CohereClientV2({
@@ -27,7 +26,6 @@ export default function Chat(){
     const [input, setInput] = useState("");
     const [sessionId, setSessionId] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const [isInitialized, setIsInitialized] = useState(false);
     const initializationRef = useRef(false);
     const searchParams = useSearchParams();
     const selectedSessionId = searchParams.get('session');
@@ -55,10 +53,9 @@ export default function Chat(){
 
                 const data = await response.json();
                 setSessionId(data.sessionId);
-                setIsInitialized(true);
                 
                 if (data.messages && data.messages.length > 0) {
-                    const formattedMessages = data.messages.map((msg: any) => ({
+                    const formattedMessages = data.messages.map((msg: ChatMessage) => ({
                         text: msg.content,
                         sender: msg.role === 'user' ? 'user' : 'bot'
                     }));
