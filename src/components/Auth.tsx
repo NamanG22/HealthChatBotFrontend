@@ -19,6 +19,7 @@ export default function Auth() {
     // Check if token exists and is valid
     const checkAuth = async () => {
       try {
+        console.log('Attempting to fetch from:', `${API_URL}/verify-token`);
         const res = await fetch(`${API_URL}/verify-token`, {
           method: 'GET',
           headers: {

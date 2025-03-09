@@ -26,6 +26,7 @@ export default function Chat(){
     const [input, setInput] = useState("");
     const [sessionId, setSessionId] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [isInitialized, setIsInitialized] = useState(false);
     const initializationRef = useRef(false);
     const searchParams = useSearchParams();
     const selectedSessionId = searchParams.get('session');
@@ -53,6 +54,7 @@ export default function Chat(){
 
                 const data = await response.json();
                 setSessionId(data.sessionId);
+                setIsInitialized(true);
                 
                 if (data.messages && data.messages.length > 0) {
                     const formattedMessages = data.messages.map((msg: ChatMessage) => ({
