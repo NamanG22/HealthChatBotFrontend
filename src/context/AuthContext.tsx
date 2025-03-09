@@ -1,5 +1,5 @@
 'use client';
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react';
 
 interface AuthContextType {
   userEmail: string;
@@ -10,28 +10,18 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [userEmail, setUserEmail] = useState(() => {
-    // Initialize from localStorage if available
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('userEmail') || '';
+      const savedEmail = localStorage.getItem('userEmail') || '';
+      // console.log('AuthProvider initialized with email:', savedEmail); // Debug log
+      return savedEmail;
     }
     return '';
   });
 
-  // Update localStorage when email changes
-  const updateEmail = (email: string) => {
-    setUserEmail(email);
-    localStorage.setItem('userEmail', email);
-  };
-
-  useEffect(() => {
-    const storedEmail = localStorage.getItem('userEmail');
-    if (storedEmail) {
-      setUserEmail(storedEmail);
-    }
-  }, []);
+  // console.log('AuthProvider rendering with email:', userEmail); // Debug log
 
   return (
-    <AuthContext.Provider value={{ userEmail, setUserEmail: updateEmail }}>
+    <AuthContext.Provider value={{ userEmail, setUserEmail }}>
       {children}
     </AuthContext.Provider>
   );
@@ -42,5 +32,6 @@ export function useAuth() {
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
+  // console.log('useAuth hook called, returning email:', context.userEmail); // Debug log
   return context;
 } 

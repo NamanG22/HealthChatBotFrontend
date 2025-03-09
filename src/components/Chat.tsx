@@ -3,7 +3,7 @@
 import { GitFork, UserRound } from 'lucide-react';
 import { Settings  } from 'lucide-react';
 import { BotMessageSquare} from 'lucide-react';
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback} from "react";
 import { FaArrowRight } from "react-icons/fa6";
 const { CohereClientV2 } = require('cohere-ai');
 const COHERE_API_KEY = process.env.NEXT_PUBLIC_COHERE_API_KEY;
@@ -21,7 +21,10 @@ interface ChatMessage {
 }
 
 export default function Chat(){
-    const { userEmail } = useAuth();
+    const { userEmail, setUserEmail } = useAuth();
+
+    // console.log("Chat Component - Current userEmail:", userEmail); // Debug log
+    
     const [messages, setMessages] = useState<{ text: string; sender: string }[]>([]);
     const [input, setInput] = useState("");
     const [sessionId, setSessionId] = useState("");
@@ -33,10 +36,24 @@ export default function Chat(){
     
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    
+    // Add this effect to restore email from localStorage if needed
+    useEffect(() => {
+        if (!userEmail) {
+            const storedEmail = localStorage.getItem('userEmail');
+            // console.log("Restoring email from localStorage:", storedEmail);
+            if (storedEmail) {
+                setUserEmail(storedEmail);
+            }
+        }
+    }, [userEmail, setUserEmail]);
+
     useEffect(() => {
         const initSession = async () => {
-            if (!userEmail || initializationRef.current) return;
+            // console.log("InitSession called with userEmail:", userEmail);
+            if (!userEmail || initializationRef.current) {
+                // console.log("Returning early because:", !userEmail ? "no userEmail" : "already initialized");
+                return;
+            }
             initializationRef.current = true;
             
             try {
@@ -44,15 +61,19 @@ export default function Chat(){
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     },
                     body: JSON.stringify({ userEmail }),
                 });
                 
                 if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Server response:', errorText);
                     throw new Error('Failed to initialize session');
                 }
 
                 const data = await response.json();
+                // console.log("Session initialized with data:", data);
                 setSessionId(data.sessionId);
                 setIsInitialized(true);
                 
@@ -76,7 +97,7 @@ export default function Chat(){
             if (!userEmail || !selectedSessionId) return;
 
             try {
-                console.log("selectedSessionId", selectedSessionId);
+                // console.log("selectedSessionId", selectedSessionId);
                 const response = await fetch(`${API_URL}/api/chat/session/${selectedSessionId}`);
                 if (!response.ok) throw new Error('Failed to fetch session');
                 
@@ -103,7 +124,7 @@ export default function Chat(){
     const sendMessage = async () => {
         const trimmedInput = input.trim();
         if (!trimmedInput) return;
-        console.log("userEmail111", userEmail);
+        // console.log("userEmail111", userEmail);
 
 
         // Show loading state
@@ -158,7 +179,7 @@ export default function Chat(){
             // Add bot response
             setMessages(prev => [...prev, botMessage]);
 
-            console.log("messages", messages);
+            // console.log("messages", messages);
 
             await fetch(`${API_URL}/api/chat/message`, {
                 method: 'POST',

@@ -23,6 +23,8 @@ export default function LeftPanel() {
     const [sessions, setSessions] = useState<ChatSession[]>([]);
     const router = useRouter();
 
+    // console.log("LeftPanel - userEmail before createNewSession:", userEmail); // Debug log
+
     useEffect(() => {
         const fetchSessions = async () => {
             try {
@@ -41,23 +43,43 @@ export default function LeftPanel() {
     }, [userEmail]);
 
     const createNewSession = async () => {
+        if (!userEmail) {
+            console.error("No user email available");
+            return;
+        }
+
         try {
+            // console.log("Creating new session for email:", userEmail); // Debug log
             const response = await fetch(`${API_URL}/api/chat/session/new`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify({ userEmail }),
             });
 
-            if (!response.ok) throw new Error('Failed to create new session');
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Server response:', errorText);
+                throw new Error('Failed to create new session');
+            }
             
             const data = await response.json();
+            // console.log("New session created:", data); // Debug log
             
             // Refresh sessions list
-            const updatedSessionsResponse = await fetch(`${API_URL}/api/chat/session?userEmail=${userEmail}`);
+            const updatedSessionsResponse = await fetch(`${API_URL}/api/chat/session?userEmail=${userEmail}`, {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
             const updatedSessions = await updatedSessionsResponse.json();
             setSessions(updatedSessions);
+
+            // Store the session ID in localStorage before redirecting
+            localStorage.setItem('currentSessionId', data.sessionId);
+            localStorage.setItem('userEmail', userEmail); // Ensure email is persisted
 
             // Redirect to the new session
             router.push(`/chat?session=${data.sessionId}`);
