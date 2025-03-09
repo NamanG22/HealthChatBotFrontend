@@ -12,6 +12,7 @@ const cohere = new CohereClientV2({
     token: COHERE_API_KEY,
 });
 import { useAuth } from '../context/AuthContext';
+import { useSearchParams } from 'next/navigation';
 
 export default function Chat(){
     const { userEmail } = useAuth();
@@ -21,6 +22,8 @@ export default function Chat(){
     const [isLoading, setIsLoading] = useState(false);
     const [isInitialized, setIsInitialized] = useState(false);
     const initializationRef = useRef(false);
+    const searchParams = useSearchParams();
+    const selectedSessionId = searchParams.get('session');
     
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -62,6 +65,35 @@ export default function Chat(){
 
         initSession();
     }, [userEmail]);
+
+    useEffect(() => {
+        const loadSession = async () => {
+            if (!userEmail || !selectedSessionId) return;
+
+            try {
+                console.log("selectedSessionId", selectedSessionId);
+                const response = await fetch(`${API_URL}/api/chat/session/${selectedSessionId}`);
+                if (!response.ok) throw new Error('Failed to fetch session');
+                
+                const session = await response.json();
+                setSessionId(selectedSessionId);
+                
+                if (session.messages && session.messages.length > 0) {
+                    const formattedMessages = session.messages.map((msg: any) => ({
+                        text: msg.content,
+                        sender: msg.role === 'user' ? 'user' : 'bot'
+                    }));
+                    setMessages(formattedMessages);
+                } else {
+                    setMessages([]);
+                }
+            } catch (error) {
+                console.error("Failed to load session:", error);
+            }
+        };
+
+        loadSession();
+    }, [selectedSessionId, userEmail]);
 
     const sendMessage = async () => {
         const trimmedInput = input.trim();
