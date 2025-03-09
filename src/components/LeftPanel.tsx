@@ -17,10 +17,10 @@ interface ChatSession {
     isActive: boolean;
 }
 
+const API_URL = process.env.NEXT_PUBLIC_BACKEND_URI;
 export default function LeftPanel() {
     const { userEmail } = useAuth();
     const [sessions, setSessions] = useState<ChatSession[]>([]);
-    const API_URL = process.env.NEXT_PUBLIC_BACKEND_URI;
     const router = useRouter();
 
     useEffect(() => {

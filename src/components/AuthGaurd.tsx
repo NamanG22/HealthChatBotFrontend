@@ -16,7 +16,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     } else {
       setLoading(false); // Allow access if token exists
     }
-  }, [pathname]);
+  }, [pathname, router]);
 
   if (loading) return <p>Loading...</p>; // Show a loading message until redirect happens
 

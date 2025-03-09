@@ -14,6 +14,8 @@ const cohere = new CohereClientV2({
 import { useAuth } from '../context/AuthContext';
 import { useSearchParams } from 'next/navigation';
 
+const API_URL = process.env.NEXT_PUBLIC_BACKEND_URI;
+
 export default function Chat(){
     const { userEmail } = useAuth();
     const [messages, setMessages] = useState<{ text: string; sender: string }[]>([]);
@@ -27,7 +29,6 @@ export default function Chat(){
     
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    const API_URL = process.env.NEXT_PUBLIC_BACKEND_URI;
     
     useEffect(() => {
         const initSession = async () => {
