@@ -16,6 +16,11 @@ import { useSearchParams } from 'next/navigation';
 
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_URI;
 
+interface ChatMessage {
+    content: string;
+    role: 'user' | 'assistant';
+}
+
 export default function Chat(){
     const { userEmail } = useAuth();
     const [messages, setMessages] = useState<{ text: string; sender: string }[]>([]);
@@ -180,12 +185,9 @@ export default function Chat(){
     };
 
     // Auto-scroll to latest message
-    const debouncedScroll = useCallback(
-        debounce(() => {
-            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-        }, 100),
-        []
-    );
+    const debouncedScroll = useCallback(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, []);
     
     useEffect(() => {
         debouncedScroll();
