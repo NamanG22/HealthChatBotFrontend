@@ -6,6 +6,9 @@ import { BotMessageSquare} from 'lucide-react';
 import { useState, useRef, useEffect, useCallback} from "react";
 import { FaArrowRight } from "react-icons/fa6";
 const { CohereClientV2 } = require('cohere-ai');
+import crypto from 'crypto';
+import axios from 'axios';
+
 const COHERE_API_KEY = process.env.NEXT_PUBLIC_COHERE_API_KEY;
 const cohere = new CohereClientV2({
     token: COHERE_API_KEY,
@@ -14,6 +17,9 @@ import { useAuth } from '../context/AuthContext';
 import { useSearchParams } from 'next/navigation';
 
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_URI;
+const API_KEY_MEDIC = process.env.NEXT_PUBLIC_MEDIC_API_KEY;    // Replace with your actual ApiMedic API Key
+const SECRET_KEY_MEDIC = process.env.NEXT_PUBLIC_MEDIC_API_SECRET;  // Replace with your actual ApiMedic Secret Key
+const API_URL_MEDIC = "https://sandbox-authservice.priaid.ch/login";  // Use "https://authservice.priaid.ch/login" in production
 
 interface ChatMessage {
     content: string;
@@ -121,6 +127,31 @@ export default function Chat(){
         loadSession();
     }, [selectedSessionId, userEmail]);
 
+    async function getAuthToken() {
+        // Generate HMAC-MD5 Hash
+        const hmac = crypto.createHmac('md5',SECRET_KEY_MEDIC || '');
+        hmac.update(API_URL_MEDIC);
+        const computedHashString = hmac.digest('base64');
+    
+        try {
+            const { data } = await axios.post(API_URL_MEDIC, {}, {
+                headers: {
+                    "Authorization": `Bearer ${API_KEY_MEDIC}:${computedHashString}`,
+                    "Content-Type": "application/json"
+                }
+            });
+    
+            console.log("Token:", data.Token); // Store this token securely for future requests
+            return data.Token;
+    
+        } catch (error: any) {
+            console.error("Error generating token:", error.response?.data || error.message);
+            throw new Error("Failed to authenticate with ApiMedic");
+        }
+    }
+
+    
+
     const sendMessage = async () => {
         const trimmedInput = input.trim();
         if (!trimmedInput) return;
@@ -160,7 +191,24 @@ export default function Chat(){
                         role: "system",
                         content: `You are a specialized health chatbot named Sante. 
                         Your purpose is to provide medically accurate and health-focused information only. 
-                        If a user asks about unrelated topics, politely steer the conversation back to health.`
+                        If a user asks about unrelated topics, politely steer the conversation back to health.
+                        
+                        Now if a user asks about a specific health condition, you should use the following format:
+                        <condition>
+                        <symptoms>
+                        <treatment>
+                        <precaution>
+                        
+                        If a user starts talking about what could have happend to me or start telling about his/her symptoms, you should ask for
+                        1. Age
+                        2. Gender
+                        3. Symptoms
+                        one by one and create a response for each question.
+                        
+                        If a user tell his age after you ask age, then create a response Age: <age> then create further responses
+                        If a user tell his gender after you ask gender, then create a response Gender: <gender> then create further responses
+                        If a user tell his symptoms after you ask symptoms, then create a response Symptoms: [<symptoms1>, <symptoms2>, <symptoms3>, ...] assume i will generate the response for diagnosis
+                        `
                     },
                     ...messages.map(msg => ({
                         role: msg.sender === "user" ? "user" : "assistant",
@@ -176,12 +224,52 @@ export default function Chat(){
             if (!response.message?.content?.[0]?.text) {
                 throw new Error("Invalid response format from Cohere");
             }
-    
+            
             const botMessage = { 
                 text: response.message.content[0].text, 
                 sender: "bot" 
             };
-    
+
+            let age;
+            let gender;
+            let symptomsArray;
+            if (response.message.content[0].text.includes("Age:")) {
+                // Extract only numbers after "Age:"
+                const ageMatch = response.message.content[0].text.match(/Age:\s*(\d+)/);
+                age = ageMatch ? parseInt(ageMatch[1]) : null;
+                botMessage.text = botMessage.text.replace(/Age:\s*\d+/, '').trim();
+            }
+            if (response.message.content[0].text.includes("Gender:")) {
+                gender = response.message.content[0].text.match(/Gender:\s*([^\n]*)/)?.[1]?.trim() || null;
+                botMessage.text = botMessage.text.replace(/Gender:\s*[^\n]*/, '').trim();
+            }
+            if (response.message.content[0].text.includes("Symptoms:")) {
+                const symptoms = response.message.content[0].text.match(/Symptoms:\s*([^\n]*)/)?.[1]?.trim() || null;
+                symptomsArray = symptoms ? symptoms.split(",").map((symptom: string) => symptom.trim()) : [];
+                botMessage.text = botMessage.text.replace(/Symptoms:\s*[^\n]*/, '').trim();
+            }
+
+            if (age && gender && symptomsArray) {
+                try {
+                    const token = await getAuthToken();
+            
+                    const { data } = await axios.get(API_URL_MEDIC, {
+                    params: {
+                        token: token,
+                        language: "en", 
+                        gender: gender,
+                        year_of_birth: new Date().getFullYear() - age,
+                        symptoms: JSON.stringify((symptomsArray || []).map((s: string) => ({ ID: s, ChoiceID: "present" })))
+                    }
+                });
+        
+                console.log("data", data);
+                botMessage.text = botMessage.text + " " + data.Diagnosis;
+                } catch (error) {
+                    console.error("Error fetching diagnosis:", error);
+                }
+            }
+            
             // Add bot response
             setMessages(prev => [...prev, botMessage]);
 
