@@ -46,9 +46,22 @@ export default function Chat(){
     useEffect(() => {
         if (!userEmail) {
             const storedEmail = localStorage.getItem('userEmail');
-            // console.log("Restoring email from localStorage:", storedEmail);
+            // Add console logs to debug
+            console.log("No userEmail in context, checking localStorage:", storedEmail);
             if (storedEmail) {
-                setUserEmail(storedEmail);
+                // Verify the email before setting it
+                if (storedEmail.includes('@')) {  // Basic validation
+                    setUserEmail(storedEmail);
+                } else {
+                    // Clear invalid email from localStorage
+                    localStorage.removeItem('userEmail');
+                }
+            }
+        } else {
+            // Ensure localStorage is in sync with context
+            const storedEmail = localStorage.getItem('userEmail');
+            if (storedEmail !== userEmail) {
+                localStorage.setItem('userEmail', userEmail);
             }
         }
     }, [userEmail, setUserEmail]);
