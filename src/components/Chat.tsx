@@ -156,6 +156,12 @@ export default function Chat(){
             const response = await cohere.chat({
                 model: 'command-r',
                 messages: [
+                    {
+                        role: "system",
+                        content: `You are a specialized health chatbot named Sante. 
+                        Your purpose is to provide medically accurate and health-focused information only. 
+                        If a user asks about unrelated topics, politely steer the conversation back to health.`
+                    },
                     ...messages.map(msg => ({
                         role: msg.sender === "user" ? "user" : "assistant",
                         content: msg.text

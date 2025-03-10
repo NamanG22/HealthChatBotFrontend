@@ -10,7 +10,7 @@ interface ChatSession {
     sessionId: string;
     messages: Array<{
         content: string;
-        role: 'user' | 'assistant';
+        role: 'user' | 'assistant' | 'system';
         timestamp: string;
     }>;
     createdAt: string;
