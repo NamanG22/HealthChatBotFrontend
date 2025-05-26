@@ -73,7 +73,7 @@ const SOAPPage = () => {
     // Split transcript into lines
     const lines = transcript.split(/\.\s+|\n+/).filter(line => line.trim().length > 0);
     
-    let report = {
+    const report = {
       subjective: {
         content: '',
         sources: [],
