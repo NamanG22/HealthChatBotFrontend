@@ -1,0 +1,184 @@
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/components/ui/use-toast";
+import { soapReportService } from '@/services/soapReport';
+
+interface SourceRange {
+  start: number;
+  end: number;
+}
+
+interface Source {
+  speaker: string;
+  quote?: string;
+  finding?: string;
+  reasoning?: string;
+  action?: string;
+  range: SourceRange;
+}
+
+interface SectionData {
+  content: string;
+  sources: Source[];
+}
+
+interface SoapReportData {
+  subjective: SectionData;
+  objective: SectionData;
+  assessment: SectionData;
+  plan: SectionData;
+}
+
+interface SoapReportProps {
+  transcript: string;
+  soapReport: SoapReportData | null;
+  setSoapReport: (report: SoapReportData | null) => void;
+}
+
+const SoapReport: React.FC<SoapReportProps> = ({
+  transcript,
+  soapReport,
+  setSoapReport,
+}) => {
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [highlightedText, setHighlightedText] = useState<string | null>(null);
+
+  const generateReport = async () => {
+    if (!transcript.trim()) {
+      toast({
+        title: "No transcription available",
+        description: "Please record some audio before generating a SOAP report.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const data = await soapReportService.generateEnhancedReport(transcript);
+      setSoapReport(data.data);
+      toast({
+        title: "SOAP Report Generated",
+        description: "Your enhanced report has been successfully created.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to generate report",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const sectionColors = {
+    subjective: 'bg-blue-50 hover:bg-blue-100',
+    objective: 'bg-green-50 hover:bg-green-100',
+    assessment: 'bg-yellow-50 hover:bg-yellow-100',
+    plan: 'bg-pink-50 hover:bg-pink-100',
+  };
+
+  const renderHighlightedTranscript = () => {
+    if (!transcript) return null;
+
+    if (!highlightedText) {
+      return <p className="text-sm whitespace-pre-wrap text-volcanic-800">{transcript}</p>;
+    }
+
+    // Create a regex that matches the text exactly, ignoring case
+    const regex = new RegExp(highlightedText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+    const parts = transcript.split(regex);
+    const matches = transcript.match(regex);
+
+    if (!matches) {
+      return <p className="text-sm whitespace-pre-wrap text-volcanic-800">{transcript}</p>;
+    }
+
+    return (
+      <p className="text-sm whitespace-pre-wrap text-volcanic-800">
+        {parts.map((part, index) => (
+          <React.Fragment key={index}>
+            {part}
+            {index < matches.length && (
+              <span className="bg-yellow-200">{matches[index]}</span>
+            )}
+          </React.Fragment>
+        ))}
+      </p>
+    );
+  };
+
+  const renderSection = (title: string, section: SectionData | undefined, type: keyof typeof sectionColors) => {
+    if (!section) return null;
+
+    return (
+      <div className={`p-4 rounded-lg mb-4 ${sectionColors[type]}`}>
+        <h3 className="font-semibold text-lg mb-2 text-volcanic-800">{title}</h3>
+        <div className="space-y-4">
+          {/* Main content */}
+          <div className="border-b pb-2">
+            <p className="text-sm font-medium text-volcanic-800">{section.content}</p> 
+          </div>
+          
+          {/* Sources */}
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium text-volcanic-800">Supporting Evidence:</h4>
+            {section.sources.map((source, idx) => {
+              const textToHighlight = source.quote || source.finding || source.reasoning || source.action;
+              return (
+                <div
+                  key={idx}
+                  className="p-2 rounded hover:bg-white/50 transition-colors"
+                  onMouseEnter={() => setHighlightedText(textToHighlight || '')}
+                  onMouseLeave={() => setHighlightedText(null)}
+                >
+                  <p className="text-sm text-volcanic-800">
+                    {textToHighlight}
+                  </p>
+                  <p className="text-xs text-volcanic-800 mt-1">- {source.speaker}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <Card className="w-full mt-4">
+      <CardHeader className="flex flex-row items-center justify-between space-x-4">
+        <CardTitle className="text-volcanic-800">SOAP Report</CardTitle>
+        <Button
+          onClick={generateReport}
+          disabled={isLoading || !transcript.trim()}
+        >
+          {isLoading ? "Generating..." : "Generate Report"}
+        </Button>
+      </CardHeader>
+      <CardContent>
+        {soapReport ? (
+          <div className="space-y-4">
+            <div className="mb-4 p-4 bg-volcanic-100 rounded-lg">
+              <h3 className="font-semibold mb-2 text-volcanic-800">Original Transcript</h3>
+              {renderHighlightedTranscript()}
+            </div>
+            {renderSection('Subjective', soapReport.subjective, 'subjective')}
+            {renderSection('Objective', soapReport.objective, 'objective')}
+            {renderSection('Assessment', soapReport.assessment, 'assessment')}
+            {renderSection('Plan', soapReport.plan, 'plan')}
+          </div>
+        ) : (
+          <div className="text-center text-gray-500 py-8">
+            Click "Generate Report" to create a SOAP report from your transcription
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+export default SoapReport;

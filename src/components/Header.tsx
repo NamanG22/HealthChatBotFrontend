@@ -63,13 +63,13 @@ export default function Header(){
                     <Link href="/chat">
                         <p className="text-overline uppercase font-code text-volcanic-800 hover:text-volcanic-900">Chat</p>
                     </Link>
-                    <Link href="#">
-                        <p className="text-overline uppercase font-code text-volcanic-800 hover:text-volcanic-900">Playground</p>
+                    <Link href="/soap">
+                        <p className="text-overline uppercase font-code text-volcanic-800 hover:text-volcanic-900">SOAP</p>
                     </Link>
-                    <Link target="_blank" href="#">
+                    <Link href="#">
                         <p className="text-overline uppercase font-code text-volcanic-800 hover:text-volcanic-900">Docs</p>
                     </Link>
-                    <Link target="_blank" href="#">
+                    <Link href="#">
                         <p className="text-overline uppercase font-code text-volcanic-800 hover:text-volcanic-900">Community</p>
                     </Link>
                     <div className="relative" ref={dropdownRef}>
